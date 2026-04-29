@@ -155,3 +155,28 @@ export const logoutUser = async (req, res) => {
         });
     }
 }
+
+
+/**
+ * - get all users controller
+ * - GET /api/auth/logout
+ */
+
+export const getAllUsers = async (req , res) => {
+    try {
+        const result = await userModel.find()
+        return res.status(200).json({
+            message:"All sub-Admins has been fetched ",
+            success:true,
+            result
+        })
+        
+    } catch (error) {
+        console.log("Error while getting alluser", error.message);
+        return res.status(500).json({
+            message:" Internal server error",
+            success:false
+        });
+    }
+}
+
