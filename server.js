@@ -7,6 +7,7 @@ import env from "./src/config/env.js";
 import authRoute from "./src/routes/auth.route.js";
 import imageRouter from "./src/routes/image.upload.routes.js";
 import infoRoute from "./src/routes/student.info.routes.js";
+import videoRoute from "./src/routes/video.route.js";
 
 
 const app = express();
@@ -22,6 +23,7 @@ app.use(cookieparser());
 app.use("/api/auth",authRoute);
 app.use("/api/image",imageRouter);
 app.use("/api/student", infoRoute);
+app.use("/api/video", videoRoute)
 
 app.get("/", async (req, res) => {
   try {
