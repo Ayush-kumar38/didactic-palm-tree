@@ -4,19 +4,25 @@ import { genToken , verifyToken} from "../utils/token.js";
 import { comparePassword } from "../utils/hash.js";
 
 /**
- * - user register controller
+ * - sub-admin register controller
  * - POST /api/auth/register
  */
 export  const createUser = async (req, res) => {
     try {
-        const {adminId,password,role,isLoggedIn} = req.body;
+        const {adminId,password ,isLoggedIn} = req.body;
         if(!adminId || !password ){
             return res.status(400).json({
                 message :" All fields are required",
                 success:false
             })
         }
+        if (req.body.role){
+            return res.status(400).json({
+                message:"Role cannot be assighed",
+                success:false
 
+            })
+        }
         const isUserExist = await userModel.findOne({adminId});
         if(isUserExist){
             return res.status(400).json({
@@ -28,7 +34,7 @@ export  const createUser = async (req, res) => {
         const user = await userModel.create({
             adminId,
             password:hashesPassword,
-            role,
+            role:"sub-admin",
             isLoggedIn:true
         });
         const token = await genToken({
@@ -89,7 +95,8 @@ export const loginUser = async (req, res) => {
         }
         const token = await genToken({
             id:isUserExist._id,
-            adminId:isUserExist.adminId
+            adminId:isUserExist.adminId,
+            role:isUserExist.role
         });
         const updatedUser = await userModel.findByIdAndUpdate(isUserExist._id, {isLoggedIn:true}, { returnDocument: 'after' });
         res.cookie("token", token, {
@@ -100,7 +107,8 @@ export const loginUser = async (req, res) => {
             success:true,
             user:{
                 id:isUserExist._id,
-                adminId:isUserExist.adminId
+                adminId:isUserExist.adminId,
+                role:isUserExist.role
             }
         });
     } catch (error) {
@@ -172,7 +180,7 @@ export const getAllUsers = async (req , res) => {
         })
         
     } catch (error) {
-        console.log("Error while getting alluser", error.message);
+        console.log("Error while getting all user", error.message);
         return res.status(500).json({
             message:" Internal server error",
             success:false
@@ -180,3 +188,53 @@ export const getAllUsers = async (req , res) => {
     }
 }
 
+
+/**
+ * - admin register controller
+ * - POST /api/auth/register/admin
+ */
+
+export const registerAdmin = async (req , res) => {
+    try {
+        const {adminId,password,role}=req.body;
+        if(req.body.role!=="admin"){
+            return res.status(403).json({
+                message:"Access denied"
+            })
+        }
+        if(!adminId || !password){
+            return res.status(400).json({
+                message :" All fields are required",
+                success:false
+            })
+        }
+
+        const existingUser = await userModel.findOne({adminId});
+        if(existingUser){
+            return res.status(400).json({
+                message:"User already exist"
+            })
+        }
+        const hashesPassword = await hashPassword(password);
+        const user = await userModel.create({
+            adminId,
+            password:hashesPassword,
+            role:role || "sub-admin"
+        })
+        
+        return res.status(201).json({
+            message:"User created successfully ",
+            user:{
+                id:user._id,
+                adminId:user.adminId,
+                role:user.role,
+            }
+        })        
+    } catch (error) {
+        console.log("Error while creating admin", error.message);
+        return res.status(500).json({
+            message:" Internal server error",
+            success:false
+        });
+    }
+}

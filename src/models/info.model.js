@@ -15,9 +15,10 @@ const infoSchema = new mongoose.Schema({
         lowercase:true,
     },
     phoneNo:{
-        type:Number,
+        type:String,
         unique:true,
         required:true,
+        match: [/^\+?[1-9]\d{9,14}$/, "Invalid phone number"]
     }
 });
 
